@@ -32,7 +32,7 @@
   <div id="google-pay-button"></div>
 
   <script type="module">
-    // ✅ Your live Square credentials
+    // ✅ Your Square production credentials
     const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";  // Production App ID
     const locationId = "LEADGZ7813668";             // Production Location ID
 
@@ -41,7 +41,7 @@
         // Load the Square Payments SDK
         const payments = window.Square.payments(appId, locationId);
 
-        // Define your payment request
+        // Define the payment request
         const paymentRequest = payments.paymentRequest({
           countryCode: "US",
           currencyCode: "USD",
@@ -53,21 +53,18 @@
 
         /* ---------- Apple Pay ---------- */
         const applePay = await payments.applePay(paymentRequest);
-        const appleAvailable = await applePay.canMakePayment();
-
+        const appleAvailable = await applePay.isAvailable();
         if (appleAvailable) {
           await applePay.attach("#apple-pay-button");
           console.log("✅ Apple Pay ready");
         } else {
           console.log("🚫 Apple Pay not available on this device/browser");
-          console.log("ℹ️ To enable: verify Production domain in Square + ensure Apple Pay is active in Safari Wallet settings.");
         }
 
         /* ---------- Google Pay ---------- */
         const googlePay = await payments.googlePay(paymentRequest);
-        const googleAvailable = await googlePay.canMakePayment();
-
-        if (googleAvailable) {
+        const googleReady = await googlePay.isReadyToPay();
+        if (googleReady) {
           await googlePay.attach("#google-pay-button");
           console.log("✅ Google Pay ready");
         } else {
