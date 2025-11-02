@@ -43,23 +43,40 @@
     total: { amount: "10.00", label: "Total" },
   });
 
-  /* ---------- Apple Pay ---------- */
-  try {
-    const applePay = await payments.applePay(paymentRequest);
-    await applePay.attach("#apple-pay-button");
-    console.log("✅ Apple Pay attempted to attach");
-  } catch (err) {
-    console.log("🚫 Apple Pay unavailable:", err);
-  }
+/* ---------- Apple Pay ---------- */
+try {
+  const applePay = await payments.applePay(paymentRequest);
+  await applePay.attach("#apple-pay-button");
+  document.querySelector("#apple-pay-button").addEventListener("click", async () => {
+    const result = await applePay.tokenize();
+    if (result.status === "OK") {
+      await processPayment(result.token);
+    } else {
+      console.error("Apple Pay failed:", result);
+    }
+  });
+  console.log("✅ Apple Pay attempted to attach");
+} catch (err) {
+  console.log("🚫 Apple Pay unavailable:", err);
+}
 
   /* ---------- Google Pay ---------- */
-  try {
-    const googlePay = await payments.googlePay(paymentRequest);
-    await googlePay.attach("#google-pay-button");
-    console.log("✅ Google Pay attempted to attach");
-  } catch (err) {
-    console.log("🚫 Google Pay unavailable:", err);
-  }
+/* ---------- Google Pay ---------- */
+try {
+  const googlePay = await payments.googlePay(paymentRequest);
+  await googlePay.attach("#google-pay-button");
+  document.querySelector("#google-pay-button").addEventListener("click", async () => {
+    const result = await googlePay.tokenize();
+    if (result.status === "OK") {
+      await processPayment(result.token);
+    } else {
+      console.error("Google Pay failed:", result);
+    }
+  });
+  console.log("✅ Google Pay attempted to attach");
+} catch (err) {
+  console.log("🚫 Google Pay unavailable:", err);
+}
 }
 initialize();  </script>
 </body>
