@@ -25,7 +25,7 @@
         total: { amount: "10.00", label: "Total" },
       });
 
-try {
+    try {
       const applePay = await payments.applePay(paymentRequest);
       const canUse = await applePay.canMakePayment();
       if (canUse) {
@@ -36,13 +36,24 @@ try {
       }
     } catch (e) {
       console.error("Apple Pay unavailable", e);
-  
-      try {
-        const googlePay = await payments.googlePay(paymentRequest);
-        await googlePay.attach("#google-pay-button");
-      } catch (e) { console.log("Google Pay unavailable", e); }
     }
 
+    /* ----------  Google Pay  ---------- */
+    try {
+      const googlePay = await payments.googlePay(paymentRequest);
+      const canUse = await googlePay.canMakePayment();
+      if (canUse) {
+        await googlePay.attach("#google-pay-button");
+        console.log("✅ Google Pay ready");
+      } else {
+        console.log("🚫 Google Pay not available on this device");
+      }
+    } catch (e) {
+      console.error("Google Pay unavailable", e);
+    }
+  }
+
+  
     initialize();
   </script>
 </body>
