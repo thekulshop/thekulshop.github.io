@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Wallet-Only Checkout</title>
 
-  <!-- ✅ Must be here -->
   <script type="module" src="https://web.squarecdn.com/v1/square.js"></script>
 </head>
 <body>
@@ -13,10 +12,9 @@
   <div id="apple-pay-button"></div>
   <div id="google-pay-button"></div>
 
-  <!-- ✅ Your custom code runs after Square loads -->
   <script type="module">
-    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";     // Production App ID
-    const locationId = "LEADGZ7813668";      // Production Location ID
+    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";   
+    const locationId = "LEADGZ7813668";     
 
     const payments = window.Square.payments(appId, locationId);
 
