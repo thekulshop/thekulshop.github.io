@@ -18,43 +18,47 @@
     
   const payments = window.Square.payments(appId, locationId);
 
-  async function initialize() {
+  async function initializeWalletButtons() {
+    // Create the payment request with required info
     const paymentRequest = payments.paymentRequest({
       countryCode: "US",
       currencyCode: "USD",
-      total: { amount: "10.00", label: "Total" },
+      total: {
+        amount: "10.00", // amount to charge
+        label: "Total",
+      },
     });
 
-    /* ----------  Apple Pay  ---------- */
+    // ---- Apple Pay ----
     try {
       const applePay = await payments.applePay(paymentRequest);
-      const canUse = await applePay.canMakePayment();
-      if (canUse) {
-        await applePay.attach("#apple-pay-button");
+      const applePayReady = await payments.canMakePayment({ method: "applePay" });
+      if (applePayReady) {
+        applePay.mount("#apple-pay-button");
         console.log("✅ Apple Pay ready");
       } else {
         console.log("🚫 Apple Pay not available on this device");
       }
-    } catch (e) {
-      console.error("Apple Pay unavailable", e);
+    } catch (err) {
+      console.error("Apple Pay unavailable:", err);
     }
 
-    /* ----------  Google Pay  ---------- */
+    // ---- Google Pay ----
     try {
       const googlePay = await payments.googlePay(paymentRequest);
-      const canUse = await googlePay.canMakePayment();
-      if (canUse) {
-        await googlePay.attach("#google-pay-button");
+      const googlePayReady = await payments.canMakePayment({ method: "googlePay" });
+      if (googlePayReady) {
+        googlePay.mount("#google-pay-button");
         console.log("✅ Google Pay ready");
       } else {
         console.log("🚫 Google Pay not available on this device");
       }
-    } catch (e) {
-      console.error("Google Pay unavailable", e);
+    } catch (err) {
+      console.error("Google Pay unavailable:", err);
     }
   }
 
-  initialize();
+  initializeWalletButtons();
 </script>
 </body>
 </html>
