@@ -13,6 +13,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       text-align: center;
       margin-top: 60px;
+      background-color: #ffffff;
     }
     h2 {
       font-size: 24px;
@@ -31,13 +32,16 @@
   <div id="google-pay-button"></div>
 
   <script type="module">
-    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";  // your Production App ID
-    const locationId = "LEADGZ7813668";             // your Production Location ID
+    // ✅ Your live Square credentials
+    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";  // Production App ID
+    const locationId = "LEADGZ7813668";             // Production Location ID
 
     async function initialize() {
       try {
+        // Load the Square Payments SDK
         const payments = window.Square.payments(appId, locationId);
 
+        // Define your payment request
         const paymentRequest = payments.paymentRequest({
           countryCode: "US",
           currencyCode: "USD",
@@ -50,23 +54,25 @@
         /* ---------- Apple Pay ---------- */
         const applePay = await payments.applePay(paymentRequest);
         const appleAvailable = await applePay.canMakePayment();
+
         if (appleAvailable) {
           await applePay.attach("#apple-pay-button");
           console.log("✅ Apple Pay ready");
         } else {
           console.log("🚫 Apple Pay not available on this device/browser");
+          console.log("ℹ️ To enable: verify Production domain in Square + ensure Apple Pay is active in Safari Wallet settings.");
         }
 
         /* ---------- Google Pay ---------- */
         const googlePay = await payments.googlePay(paymentRequest);
         const googleAvailable = await googlePay.canMakePayment();
+
         if (googleAvailable) {
           await googlePay.attach("#google-pay-button");
           console.log("✅ Google Pay ready");
         } else {
           console.log("🚫 Google Pay not available on this device/browser");
         }
-
       } catch (err) {
         console.error("Error initializing wallets:", err);
       }
