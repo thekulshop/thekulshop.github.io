@@ -25,11 +25,18 @@
         total: { amount: "10.00", label: "Total" },
       });
 
-      try {
-        const applePay = await payments.applePay(paymentRequest);
+try {
+      const applePay = await payments.applePay(paymentRequest);
+      const canUse = await applePay.canMakePayment();
+      if (canUse) {
         await applePay.attach("#apple-pay-button");
-      } catch (e) { console.log("Apple Pay unavailable", e); }
-
+        console.log("✅ Apple Pay ready");
+      } else {
+        console.log("🚫 Apple Pay not available on this device");
+      }
+    } catch (e) {
+      console.error("Apple Pay unavailable", e);
+  
       try {
         const googlePay = await payments.googlePay(paymentRequest);
         await googlePay.attach("#google-pay-button");
