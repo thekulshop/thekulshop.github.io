@@ -1,39 +1,44 @@
-<script type="module" src="https://web.squarecdn.com/v1/square.js"></script>
-<script type="module">
-  const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";
-  const locationId = "LEADGZ7813668";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Wallet-Only Checkout</title>
 
-  const payments = window.Square.payments(appId, locationId);
+  <!-- ✅ Must be here -->
+  <script type="module" src="https://web.squarecdn.com/v1/square.js"></script>
+</head>
+<body>
+  <h2>Checkout</h2>
+  <div id="apple-pay-button"></div>
+  <div id="google-pay-button"></div>
 
-  async function initialize() {
-    // 1️⃣ Create the paymentRequest object with amount, currency, etc.
-    const paymentRequest = payments.paymentRequest({
-      countryCode: "US",
-      currencyCode: "USD",
-      total: {
-        amount: "10.00",   // change this to your item total
-        label: "Total",
-      },
-    });
+  <!-- ✅ Your custom code runs after Square loads -->
+  <script type="module">
+    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";     // Production App ID
+    const locationId = "LEADGZ7813668";      // Production Location ID
 
-    // 2️⃣ Try to initialize Apple Pay
-    try {
-      const applePay = await payments.applePay(paymentRequest);
-      await applePay.attach("#apple-pay-button");
-      console.log("✅ Apple Pay ready");
-    } catch (err) {
-      console.log("Apple Pay unavailable –", err);
+    const payments = window.Square.payments(appId, locationId);
+
+    async function initialize() {
+      const paymentRequest = payments.paymentRequest({
+        countryCode: "US",
+        currencyCode: "USD",
+        total: { amount: "10.00", label: "Total" },
+      });
+
+      try {
+        const applePay = await payments.applePay(paymentRequest);
+        await applePay.attach("#apple-pay-button");
+      } catch (e) { console.log("Apple Pay unavailable", e); }
+
+      try {
+        const googlePay = await payments.googlePay(paymentRequest);
+        await googlePay.attach("#google-pay-button");
+      } catch (e) { console.log("Google Pay unavailable", e); }
     }
 
-    // 3️⃣ Try to initialize Google Pay
-    try {
-      const googlePay = await payments.googlePay(paymentRequest);
-      await googlePay.attach("#google-pay-button");
-      console.log("✅ Google Pay ready");
-    } catch (err) {
-      console.log("Google Pay unavailable –", err);
-    }
-  }
-
-  initialize();
-</script>
+    initialize();
+  </script>
+</body>
+</html>
