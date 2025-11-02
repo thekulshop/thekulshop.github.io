@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Kul Shop Checkout</title>
+
+  <!-- Square Web Payments SDK -->
+  <script type="module" src="https://web.squarecdn.com/v1/square.js"></script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      text-align: center;
+      margin-top: 60px;
+      background-color: #fff;
+    }
+    h2 {
+      font-size: 24px;
+      margin-bottom: 30px;
+    }
+    #apple-pay-button, #google-pay-button {
+      display: block;
+      margin: 20px auto;
+      width: 240px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Checkout</h2>
+  <div id="apple-pay-button"></div>
+  <div id="google-pay-button"></div>
+
+  <script type="module">
+    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";    // ✅ Your Production App ID
+    const locationId = "LEADGZ7813668";               // ✅ Your Production Location ID
+
+    const payments = window.Square.payments(appId, locationId);
+
+    async function initializeWalletButtons() {
+      // Create a payment request
+      const paymentRequest = payments.paymentRequest({
+        countryCode: "US",
+        currencyCode: "USD",
+        total: {
+          amount: "10.00",  // example amount
+          label: "Total",
+        },
+      });
+
+      /* ---------- Apple Pay ---------- */
+      try {
+        const applePay = await payments.applePay(paymentRequest);
+        const appleSupported = await applePay.isSupported();
+        if (appleSupported) {
+          applePay.mount("#apple-pay-button");
+          console.log("✅ Apple Pay ready");
+        } else {
+          console.log("🚫 Apple Pay not supported on this device/browser");
+        }
+      } catch (err) {
+        console.error("Apple Pay unavailable:", err);
+      }
+
+      /* ---------- Google Pay ---------- */
+      try {
+        const googlePay = await payments.googlePay(paymentRequest);
+        const googleSupported = await googlePay.isSupported();
+        if (googleSupported) {
+          googlePay.mount("#google-pay-button");
+          console.log("✅ Google Pay ready");
+        } else {
+          console.log("🚫 Google Pay not supported on this device/browser");
+        }
+      } catch (err) {
+        console.error("Google Pay unavailable:", err);
+      }
+    }
+
+    initializeWalletButtons();
+  </script>
+</body>
+</html>
