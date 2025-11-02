@@ -53,7 +53,7 @@
 
         /* ---------- Apple Pay ---------- */
         const applePay = await payments.applePay(paymentRequest);
-        const appleAvailable = await applePay.isAvailable();
+        const appleAvailable = await applePay.canMakePayment();
         if (appleAvailable) {
           await applePay.attach("#apple-pay-button");
           console.log("✅ Apple Pay ready");
@@ -63,7 +63,7 @@
 
         /* ---------- Google Pay ---------- */
         const googlePay = await payments.googlePay(paymentRequest);
-        const googleReady = await googlePay.isReadyToPay();
+        const googleReady = await googlePay.canMakePayment();
         if (googleReady) {
           await googlePay.attach("#google-pay-button");
           console.log("✅ Google Pay ready");
