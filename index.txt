@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wallet-Only Checkout</title>
+  <script type="module" src="https://web.squarecdn.com/v1/square.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 3rem; }
+    #apple-pay-button, #google-pay-button { margin: 1rem auto; display: block; }
+  </style>
+</head>
+<body>
+  <h2>Checkout</h2>
+  <div id="apple-pay-button"></div>
+  <div id="google-pay-button"></div>
+
+  <script type="module">
+    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";        // from Developer Dashboard
+    const locationId = "LEADGZ7813668";          // from Developer Dashboard
+
+    const payments = window.Square.payments(appId, locationId);
+
+    async function initialize() {
+      try {
+        const applePay = await payments.applePay({ countryCode: "US", currencyCode: "USD" });
+        await applePay.attach("#apple-pay-button");
+      } catch (e) {
+        console.log("Apple Pay unavailable", e);
+      }
+
+      try {
+        const googlePay = await payments.googlePay({ countryCode: "US", currencyCode: "USD" });
+        await googlePay.attach("#google-pay-button");
+      } catch (e) {
+        console.log("Google Pay unavailable", e);
+      }
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
