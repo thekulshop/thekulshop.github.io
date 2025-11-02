@@ -12,46 +12,46 @@
   <div id="apple-pay-button"></div>
   <div id="google-pay-button"></div>
 
-  <script type="module">
-    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";   
-    const locationId = "LEADGZ7813668";     
-    
+<script type="module">
+  const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";     // your Production App ID
+  const locationId = "LEADGZ7813668";          // your Production Location ID
+
   const payments = window.Square.payments(appId, locationId);
 
   async function initializeWalletButtons() {
-    // Create the payment request with required info
+    // Create a payment request
     const paymentRequest = payments.paymentRequest({
       countryCode: "US",
       currencyCode: "USD",
       total: {
-        amount: "10.00", // amount to charge
+        amount: "10.00",
         label: "Total",
       },
     });
 
-    // ---- Apple Pay ----
+    /* ---------- Apple Pay ---------- */
     try {
       const applePay = await payments.applePay(paymentRequest);
-      const applePayReady = await payments.canMakePayment({ method: "applePay" });
-      if (applePayReady) {
+      const appleSupported = await applePay.isSupported();
+      if (appleSupported) {
         applePay.mount("#apple-pay-button");
         console.log("✅ Apple Pay ready");
       } else {
-        console.log("🚫 Apple Pay not available on this device");
+        console.log("🚫 Apple Pay not supported on this device/browser");
       }
     } catch (err) {
       console.error("Apple Pay unavailable:", err);
     }
 
-    // ---- Google Pay ----
+    /* ---------- Google Pay ---------- */
     try {
       const googlePay = await payments.googlePay(paymentRequest);
-      const googlePayReady = await payments.canMakePayment({ method: "googlePay" });
-      if (googlePayReady) {
+      const googleSupported = await googlePay.isSupported();
+      if (googleSupported) {
         googlePay.mount("#google-pay-button");
         console.log("✅ Google Pay ready");
       } else {
-        console.log("🚫 Google Pay not available on this device");
+        console.log("🚫 Google Pay not supported on this device/browser");
       }
     } catch (err) {
       console.error("Google Pay unavailable:", err);
