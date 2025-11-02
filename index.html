@@ -37,45 +37,30 @@
     const locationId = "LEADGZ7813668";             // Production Location ID
 
     async function initialize() {
-      try {
-        // Load the Square Payments SDK
-        const payments = window.Square.payments(appId, locationId);
+  const paymentRequest = payments.paymentRequest({
+    countryCode: "US",
+    currencyCode: "USD",
+    total: { amount: "10.00", label: "Total" },
+  });
 
-        // Define the payment request
-        const paymentRequest = payments.paymentRequest({
-          countryCode: "US",
-          currencyCode: "USD",
-          total: {
-            amount: "10.00",
-            label: "Total",
-          },
-        });
+  /* ---------- Apple Pay ---------- */
+  try {
+    const applePay = await payments.applePay(paymentRequest);
+    await applePay.attach("#apple-pay-button");
+    console.log("✅ Apple Pay attempted to attach");
+  } catch (err) {
+    console.log("🚫 Apple Pay unavailable:", err);
+  }
 
-        /* ---------- Apple Pay ---------- */
-        const applePay = await payments.applePay(paymentRequest);
-        const appleAvailable = await applePay.canMakePayment();
-        if (appleAvailable) {
-          await applePay.attach("#apple-pay-button");
-          console.log("✅ Apple Pay ready");
-        } else {
-          console.log("🚫 Apple Pay not available on this device/browser");
-        }
-
-        /* ---------- Google Pay ---------- */
-        const googlePay = await payments.googlePay(paymentRequest);
-        const googleReady = await googlePay.canMakePayment();
-        if (googleReady) {
-          await googlePay.attach("#google-pay-button");
-          console.log("✅ Google Pay ready");
-        } else {
-          console.log("🚫 Google Pay not available on this device/browser");
-        }
-      } catch (err) {
-        console.error("Error initializing wallets:", err);
-      }
-    }
-
-    initialize();
-  </script>
+  /* ---------- Google Pay ---------- */
+  try {
+    const googlePay = await payments.googlePay(paymentRequest);
+    await googlePay.attach("#google-pay-button");
+    console.log("✅ Google Pay attempted to attach");
+  } catch (err) {
+    console.log("🚫 Google Pay unavailable:", err);
+  }
+}
+initialize();  </script>
 </body>
 </html>
