@@ -15,16 +15,17 @@
   <script type="module">
     const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";   
     const locationId = "LEADGZ7813668";     
+    
+  const payments = window.Square.payments(appId, locationId);
 
-    const payments = window.Square.payments(appId, locationId);
+  async function initialize() {
+    const paymentRequest = payments.paymentRequest({
+      countryCode: "US",
+      currencyCode: "USD",
+      total: { amount: "10.00", label: "Total" },
+    });
 
-    async function initialize() {
-      const paymentRequest = payments.paymentRequest({
-        countryCode: "US",
-        currencyCode: "USD",
-        total: { amount: "10.00", label: "Total" },
-      });
-
+    /* ----------  Apple Pay  ---------- */
     try {
       const applePay = await payments.applePay(paymentRequest);
       const canUse = await applePay.canMakePayment();
@@ -53,8 +54,7 @@
     }
   }
 
-  
-    initialize();
-  </script>
+  initialize();
+</script>
 </body>
 </html>
