@@ -31,55 +31,69 @@
   <div id="apple-pay-button"></div>
   <div id="google-pay-button"></div>
 
-  <script type="module">
-    // ✅ Your Square production credentials
-    const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";  // Production App ID
-    const locationId = "LEADGZ7813668";             // Production Location ID
 
-    async function initialize() {
-  const paymentRequest = payments.paymentRequest({
-    countryCode: "US",
-    currencyCode: "USD",
-    total: { amount: "10.00", label: "Total" },
-  });
+<script type="module">
+  // ✅ Load the Square SDK inside the module
+  import { payments } from "https://web.squarecdn.com/v1/square.js";
 
-<div id="payment-container"></div>
-      
-/* ---------- Apple Pay ---------- */
-try {
-  const applePay = await payments.applePay(paymentRequest);
-  await applePay.attach("#apple-pay-button");
-  document.querySelector("#apple-pay-button").addEventListener("click", async () => {
-    const result = await applePay.tokenize();
-    if (result.status === "OK") {
-      await processPayment(result.token);
-    } else {
-      console.error("Apple Pay failed:", result);
+  // ✅ Your Square production credentials
+  const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";  // Production App ID
+  const locationId = "LEADGZ7813668";             // Production Location ID
+
+  async function initialize() {
+    // Initialize the SDK
+    const paymentsObj = await payments(appId, locationId);
+
+    // Create a payment request object
+    const paymentRequest = paymentsObj.paymentRequest({
+      countryCode: "US",
+      currencyCode: "USD",
+      total: { amount: "10.00", label: "Total" },
+    });
+
+    /* ---------- Apple Pay ---------- */
+    try {
+      const applePay = await paymentsObj.applePay(paymentRequest);
+      await applePay.attach("#apple-pay-button");
+      document.querySelector("#apple-pay-button").addEventListener("click", async () => {
+        const result = await applePay.tokenize();
+        if (result.status === "OK") {
+          await processPayment(result.token);
+        } else {
+          console.error("Apple Pay failed:", result);
+        }
+      });
+      console.log("✅ Apple Pay attached");
+    } catch (err) {
+      console.log("🚫 Apple Pay unavailable:", err);
     }
-  });
-  console.log("✅ Apple Pay attempted to attach");
-} catch (err) {
-  console.log("🚫 Apple Pay unavailable:", err);
-}
 
-  /* ---------- Google Pay ---------- */
-/* ---------- Google Pay ---------- */
-try {
-  const googlePay = await payments.googlePay(paymentRequest);
-  await googlePay.attach("#google-pay-button");
-  document.querySelector("#google-pay-button").addEventListener("click", async () => {
-    const result = await googlePay.tokenize();
-    if (result.status === "OK") {
-      await processPayment(result.token);
-    } else {
-      console.error("Google Pay failed:", result);
+    /* ---------- Google Pay ---------- */
+    try {
+      const googlePay = await paymentsObj.googlePay(paymentRequest);
+      await googlePay.attach("#google-pay-button");
+      document.querySelector("#google-pay-button").addEventListener("click", async () => {
+        const result = await googlePay.tokenize();
+        if (result.status === "OK") {
+          await processPayment(result.token);
+        } else {
+          console.error("Google Pay failed:", result);
+        }
+      });
+      console.log("✅ Google Pay attached");
+    } catch (err) {
+      console.log("🚫 Google Pay unavailable:", err);
     }
-  });
-  console.log("✅ Google Pay attempted to attach");
-} catch (err) {
-  console.log("🚫 Google Pay unavailable:", err);
-}
-}
-initialize();  </script>
+  }
+
+  initialize();
+
+  // Placeholder for your backend call (you can replace this later)
+  async function processPayment(token) {
+    console.log("🪙 Payment token created:", token);
+    alert("Payment successful!");
+  }
+</script>  
+
 </body>
 </html>
