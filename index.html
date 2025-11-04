@@ -6,11 +6,11 @@
   <title>Kulshop Checkout</title>
   <script type="text/javascript" src="https://web.squarecdn.com/v1/square.js"></script>
   <style>
-    #card-container, #apple-pay-button {
+    #apple-pay-button, #card-container {
       margin-top: 20px;
     }
     #apple-pay-button {
-      display: none; /* hidden until Apple Pay is available */
+      display: none;
     }
     button {
       padding: 10px 20px;
@@ -20,15 +20,14 @@
   </style>
 </head>
 <body>
-  <h1>Checkout</h1>
+  <h1>Kulshop Checkout</h1>
 
-  <!-- Apple Pay button container -->
+  <!-- Apple Pay button -->
   <div id="apple-pay-button"></div>
 
-  <!-- Card form container -->
+  <!-- Credit Card form -->
   <div id="card-container"></div>
 
-  <!-- Submit button -->
   <button id="card-button" type="button">Pay Now</button>
 
   <script>
@@ -41,54 +40,53 @@
         return;
       }
 
-      // Initialize the Payments object
       const payments = window.Square.payments(appId, locationId);
 
       // ---------- Apple Pay ----------
       try {
-        // 1️⃣ Create a Payment Request
         const paymentRequest = payments.paymentRequest({
           countryCode: "US",
           currencyCode: "USD",
           total: {
-            amount: "1.00", // change dynamically as needed
-            label: "Kulshop Purchase"
+            amount: "1.00",
+            label: "Kulshop Order",
           },
-          requestShippingContact: false
         });
 
-        // 2️⃣ Initialize Apple Pay with that request
-        const applePay = await payments.applePay(paymentRequest);
+        // ✅ NEW WAY:
+        // Instead of payments.applePay(paymentRequest)
+        // use await payments.paymentMethods.load("applePay")
+        const applePay = await payments.paymentMethods.load("applePay");
+        const canUseApplePay = await applePay.canMakePayment(paymentRequest);
 
-        // 3️⃣ Check availability
-        const canUse = await applePay.canMakePayment();
-        if (canUse) {
-          const applePayButton = document.getElementById("apple-pay-button");
-          applePayButton.style.display = "block";
-          await applePay.render("#apple-pay-button");
+        if (canUseApplePay) {
+          document.getElementById("apple-pay-button").style.display = "block";
+          await applePay.attach("#apple-pay-button", paymentRequest);
+
+          // Handle Apple Pay payment
+          applePay.addEventListener("paymentauthorized", async (event) => {
+            console.log("Apple Pay token:", event.detail.token);
+            alert("Apple Pay token created: " + event.detail.token);
+          });
+        } else {
+          console.log("Apple Pay not available on this device.");
         }
       } catch (err) {
-        console.log("Apple Pay not available:", err.message);
+        console.error("Apple Pay setup failed:", err);
       }
 
-      // ---------- Card Payments ----------
+      // ---------- Card ----------
       const card = await payments.card();
       await card.attach("#card-container");
 
-      // ---------- Handle Card Submission ----------
       document.getElementById("card-button").addEventListener("click", async () => {
-        try {
-          const result = await card.tokenize();
-          if (result.status === "OK") {
-            console.log("Payment Token:", result.token);
-            alert("Payment token created successfully! " + result.token);
-            // Send this token to your backend for processing
-          } else {
-            console.error("Tokenization failed:", result.errors);
-            alert("Card tokenization failed — check console for details");
-          }
-        } catch (err) {
-          console.error("Error tokenizing card:", err);
+        const result = await card.tokenize();
+        if (result.status === "OK") {
+          console.log("Card token:", result.token);
+          alert("Card token created: " + result.token);
+        } else {
+          console.error(result.errors);
+          alert("Card tokenization failed. Check console for details.");
         }
       });
     }
