@@ -46,12 +46,26 @@
 
       // ---------- Apple Pay ----------
       try {
-        const applePay = await payments.applePay();
+        // 1️⃣ Create a Payment Request
+        const paymentRequest = payments.paymentRequest({
+          countryCode: "US",
+          currencyCode: "USD",
+          total: {
+            amount: "1.00", // change dynamically as needed
+            label: "Kulshop Purchase"
+          },
+          requestShippingContact: false
+        });
+
+        // 2️⃣ Initialize Apple Pay with that request
+        const applePay = await payments.applePay(paymentRequest);
+
+        // 3️⃣ Check availability
         const canUse = await applePay.canMakePayment();
         if (canUse) {
           const applePayButton = document.getElementById("apple-pay-button");
           applePayButton.style.display = "block";
-          await applePayButton.replaceWith(await applePay.render("#apple-pay-button"));
+          await applePay.render("#apple-pay-button");
         }
       } catch (err) {
         console.log("Apple Pay not available:", err.message);
@@ -68,7 +82,7 @@
           if (result.status === "OK") {
             console.log("Payment Token:", result.token);
             alert("Payment token created successfully! " + result.token);
-            // send result.token to your server to complete payment
+            // Send this token to your backend for processing
           } else {
             console.error("Tokenization failed:", result.errors);
             alert("Card tokenization failed — check console for details");
