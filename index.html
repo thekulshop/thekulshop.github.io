@@ -4,30 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kulshop Checkout</title>
-  <script type="text/javascript" src="https://web.squarecdn.com/v1/square.js"></script>
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
   <style>
-    #apple-pay-button, #card-container {
-      margin-top: 20px;
-    }
-    #apple-pay-button {
-      display: none;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 15px;
-      cursor: pointer;
-    }
+    #apple-pay-button, #card-container { margin-top: 20px; }
+    #apple-pay-button { display: none; }
+    button { padding: 10px 20px; margin-top: 15px; cursor: pointer; }
   </style>
 </head>
 <body>
   <h1>Kulshop Checkout</h1>
 
-  <!-- Apple Pay button -->
   <div id="apple-pay-button"></div>
-
-  <!-- Credit Card form -->
   <div id="card-container"></div>
-
   <button id="card-button" type="button">Pay Now</button>
 
   <script>
@@ -47,29 +35,22 @@
         const paymentRequest = payments.paymentRequest({
           countryCode: "US",
           currencyCode: "USD",
-          total: {
-            amount: "1.00",
-            label: "Kulshop Order",
-          },
+          total: { amount: "1.00", label: "Kulshop Order" },
         });
 
-        // ✅ NEW WAY:
-        // Instead of payments.applePay(paymentRequest)
-        // use await payments.paymentMethods.load("applePay")
-        const applePay = await payments.paymentMethods.load("applePay");
-        const canUseApplePay = await applePay.canMakePayment(paymentRequest);
+        const applePay = await payments.applePay(paymentRequest);
 
-        if (canUseApplePay) {
+        // ✅ Use the browser’s native availability check
+        if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
           document.getElementById("apple-pay-button").style.display = "block";
-          await applePay.attach("#apple-pay-button", paymentRequest);
+          await applePay.attach("#apple-pay-button");
 
-          // Handle Apple Pay payment
           applePay.addEventListener("paymentauthorized", async (event) => {
             console.log("Apple Pay token:", event.detail.token);
-            alert("Apple Pay token created: " + event.detail.token);
+            alert("Apple Pay token: " + event.detail.token);
           });
         } else {
-          console.log("Apple Pay not available on this device.");
+          console.log("Apple Pay not supported on this device/browser");
         }
       } catch (err) {
         console.error("Apple Pay setup failed:", err);
@@ -83,10 +64,10 @@
         const result = await card.tokenize();
         if (result.status === "OK") {
           console.log("Card token:", result.token);
-          alert("Card token created: " + result.token);
+          alert("Card token: " + result.token);
         } else {
           console.error(result.errors);
-          alert("Card tokenization failed. Check console for details.");
+          alert("Card tokenization failed — see console");
         }
       });
     }
