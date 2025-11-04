@@ -3,94 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Kul Shop Checkout</title>
-
+  <title>Kulshop Checkout</title>
+  <script type="text/javascript" src="https://web.squarecdn.com/v1/square.js"></script>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      text-align: center;
-      margin-top: 60px;
-      background-color: #ffffff;
+    #card-container, #apple-pay-button {
+      margin-top: 20px;
     }
-    h2 {
-      font-size: 24px;
-      margin-bottom: 30px;
+    #apple-pay-button {
+      display: none; /* hidden until Apple Pay is available */
     }
-    #payment-container {
-      margin: 20px auto;
-      width: 260px;
+    button {
+      padding: 10px 20px;
+      margin-top: 15px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h2>Checkout</h2>
-  <div id="payment-container"></div>
+  <h1>Checkout</h1>
 
-  <script type="module">
-    import { payments } from "https://web.squarecdn.com/v1/square.js";
+  <!-- Apple Pay button container -->
+  <div id="apple-pay-button"></div>
 
-    // ✅ Your live Square credentials
+  <!-- Card form container -->
+  <div id="card-container"></div>
+
+  <!-- Submit button -->
+  <button id="card-button" type="button">Pay Now</button>
+
+  <script>
     const appId = "sq0idp-UHFeGtPq7o_wZwrPngY1cQ";
     const locationId = "LEADGZ7813668";
 
-    async function initialize() {
-      const paymentsObj = await payments(appId, locationId);
-      const paymentRequest = paymentsObj.paymentRequest({
-        countryCode: "US",
-        currencyCode: "USD",
-        total: { amount: "10.00", label: "Total" },
+    async function initializeSquare() {
+      if (!window.Square) {
+        console.error("Square.js failed to load");
+        return;
+      }
+
+      // Initialize the Payments object
+      const payments = window.Square.payments(appId, locationId);
+
+      // ---------- Apple Pay ----------
+      try {
+        const applePay = await payments.applePay();
+        const canUse = await applePay.canMakePayment();
+        if (canUse) {
+          const applePayButton = document.getElementById("apple-pay-button");
+          applePayButton.style.display = "block";
+          await applePayButton.replaceWith(await applePay.render("#apple-pay-button"));
+        }
+      } catch (err) {
+        console.log("Apple Pay not available:", err.message);
+      }
+
+      // ---------- Card Payments ----------
+      const card = await payments.card();
+      await card.attach("#card-container");
+
+      // ---------- Handle Card Submission ----------
+      document.getElementById("card-button").addEventListener("click", async () => {
+        try {
+          const result = await card.tokenize();
+          if (result.status === "OK") {
+            console.log("Payment Token:", result.token);
+            alert("Payment token created successfully! " + result.token);
+            // send result.token to your server to complete payment
+          } else {
+            console.error("Tokenization failed:", result.errors);
+            alert("Card tokenization failed — check console for details");
+          }
+        } catch (err) {
+          console.error("Error tokenizing card:", err);
+        }
       });
-
-      const container = document.getElementById("payment-container");
-
-      /* ---------- Apple Pay ---------- */
-      try {
-        const applePay = await paymentsObj.applePay(paymentRequest);
-        const canUseApplePay = await applePay.canMakePayment();
-        if (canUseApplePay) {
-          await applePay.attach("#payment-container");
-          container.addEventListener("click", async () => {
-            const result = await applePay.tokenize();
-            if (result.status === "OK") await processPayment(result.token);
-            else console.error("Apple Pay failed:", result);
-          });
-          console.log("✅ Apple Pay attached");
-          return; // stop here so Google Pay doesn't also render
-        }
-      } catch (err) {
-        console.log("🚫 Apple Pay unavailable:", err);
-      }
-
-      /* ---------- Google Pay ---------- */
-      try {
-        const googlePay = await paymentsObj.googlePay(paymentRequest);
-        const canUseGooglePay = await googlePay.canMakePayment();
-        if (canUseGooglePay) {
-          await googlePay.attach("#payment-container");
-          container.addEventListener("click", async () => {
-            const result = await googlePay.tokenize();
-            if (result.status === "OK") await processPayment(result.token);
-            else console.error("Google Pay failed:", result);
-          });
-          console.log("✅ Google Pay attached");
-          return;
-        }
-      } catch (err) {
-        console.log("🚫 Google Pay unavailable:", err);
-      }
-
-      // If neither wallet is supported
-      container.innerHTML =
-        "Please use a device or browser that supports Apple Pay or Google Pay.";
     }
 
-    // 🔧 Placeholder until you connect your backend
-    async function processPayment(token) {
-      console.log("🪙 Payment token created:", token);
-      alert("Payment successful!");
-    }
-
-    initialize();
+    document.addEventListener("DOMContentLoaded", initializeSquare);
   </script>
 </body>
 </html>
